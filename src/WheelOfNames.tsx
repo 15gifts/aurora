@@ -45,7 +45,7 @@ const WheelOfNames = () => {
   const [results, setResults] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<string>('people')
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-  const defaultImage = isChristmas ? './15giftsXMAS.jpg' : './15gifts.jpg'
+  const defaultImage = isChristmas ? './XmasWheelBackground.jpg' : './WheelBackground.jpg'
   const [backgroundImageUrl, setBackgroundImageUrl] =
     useState<string>(defaultImage)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
