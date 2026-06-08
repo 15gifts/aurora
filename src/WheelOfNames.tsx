@@ -98,7 +98,7 @@ const WheelOfNames = () => {
         setNames(newNames)
       } else {
         // Set default names if no saved input value is found
-        const defaultNames = 'Liam\nJohn\nMatt\nAnnie\nTom\nPete\nChris'
+        const defaultNames = 'John\nPaul\nGeorge\nRingo'
         setInputValue(defaultNames)
         const newNames = defaultNames
           .split('\n')
