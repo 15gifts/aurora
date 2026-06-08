@@ -233,9 +233,9 @@ const WheelOfNames = () => {
   }
 
   const resetToDefaultBackground = () => {
-    setBackgroundImageUrl('/15gifts.jpg')
+    setBackgroundImageUrl('/WheelBackground.jpg')
     localStorage.removeItem('wheelOfNamesBgImage')
-    loadBackgroundImage('/15gifts.jpg')
+    loadBackgroundImage('/WheelBackground.jpg')
   }
 
   const handleResultMessageChange = (e: ChangeEvent<HTMLInputElement>) => {
