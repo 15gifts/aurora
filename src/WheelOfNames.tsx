@@ -43,7 +43,7 @@ const WheelOfNames = () => {
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
   
   // Use relative paths for GitHub Pages
-  const defaultImage = isChristmas ? './15giftsXMAS.jpg' : './15gifts.jpg'
+  const defaultImage = isChristmas ? './XMASWheelBackground.jpg' : './WheelBackground.jpg'
   const [backgroundImageUrl, setBackgroundImageUrl] =
     useState<string>(defaultImage)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -204,9 +204,9 @@ const WheelOfNames = () => {
   }
 
   const resetToDefaultBackground = () => {
-    setBackgroundImageUrl('./15gifts.jpg')
+    setBackgroundImageUrl('./WheelBackground.jpg')
     localStorage.removeItem('wheelOfNamesBgImage')
-    loadBackgroundImage('./15gifts.jpg')
+    loadBackgroundImage('./WheelBackground.jpg')
   }
 
   const handleResultMessageChange = (e: ChangeEvent<HTMLInputElement>) => {
