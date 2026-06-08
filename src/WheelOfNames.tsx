@@ -23,14 +23,10 @@ import { Menu, X, ArrowDownAZ, Shuffle } from 'lucide-react'
 
 import { debounce, encodeBase64, decodeBase64, isChristmas } from '@/lib/utils'
 
-import teamData from '@/data/teamData'
-
 const WheelOfNames = () => {
   const [names, setNames] = useState<string[]>([])
-  const [teams, setTeams] = useState<{ [key: string]: string[] }>({})
   const [wheels, setWheels] = useState<{ [key: string]: string[] }>({})
   const [selectedWheel, setSelectedWheel] = useState<string>('')
-  const [selectedTeam, setSelectedTeam] = useState<string>('')
   const [showImportDialog, setShowImportDialog] = useState<boolean>(false)
   const [showSaveDialog, setShowSaveDialog] = useState<boolean>(false)
   const [inputValue, setInputValue] = useState<string>('')
@@ -45,7 +41,9 @@ const WheelOfNames = () => {
   const [results, setResults] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<string>('people')
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-  const defaultImage = isChristmas ? './XmasWheelBackground.jpg' : './WheelBackground.jpg'
+  
+  // Use relative paths for GitHub Pages
+  const defaultImage = isChristmas ? './15giftsXMAS.jpg' : './15gifts.jpg'
   const [backgroundImageUrl, setBackgroundImageUrl] =
     useState<string>(defaultImage)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -125,8 +123,6 @@ const WheelOfNames = () => {
       setResultMessage(savedResultMessage)
     }
 
-    setTeams(teamData)
-
     // Start the slow spin
     startSlowSpin()
 
@@ -156,15 +152,12 @@ const WheelOfNames = () => {
       drawWheel()
     }
   }, [names, backgroundImage])
+  
   useEffect(() => {
     if (names.length > 0 && backgroundImage) {
       drawWheel()
     }
   }, [names, rotation, backgroundImage])
-
-  useEffect(() => {
-    importTeams()
-  }, [selectedTeam])
 
   useEffect(() => {
     if (selectedWheel) {
@@ -186,30 +179,8 @@ const WheelOfNames = () => {
     }
   }, [showAlert])
 
-  useEffect(() => {
-    console.log(wheels)
-  }, [wheels])
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
-  }
-
-  const importTeams = () => {
-    let importedNames: string[] = []
-    if (selectedTeam) {
-      if (selectedTeam === 'All') {
-        Object.values(teams).forEach((teamMembers) => {
-          importedNames = importedNames.concat(teamMembers)
-        })
-      } else {
-        importedNames = teams[selectedTeam] || []
-      }
-
-      setNames(importedNames)
-      console.log(names)
-      setInputValue(importedNames.join('\n'))
-      localStorage.setItem('wheelOfNamesInput', importedNames.join('\n'))
-    }
   }
 
   const loadBackgroundImage = (url: string) => {
@@ -233,9 +204,9 @@ const WheelOfNames = () => {
   }
 
   const resetToDefaultBackground = () => {
-    setBackgroundImageUrl('/WheelBackground.jpg')
+    setBackgroundImageUrl('./15gifts.jpg')
     localStorage.removeItem('wheelOfNamesBgImage')
-    loadBackgroundImage('/WheelBackground.jpg')
+    loadBackgroundImage('./15gifts.jpg')
   }
 
   const handleResultMessageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -624,7 +595,7 @@ const WheelOfNames = () => {
                 <Button
                   onClick={() => setShowImportDialog(true)}
                   className="w-full">
-                  Import
+                  Saved Wheels
                 </Button>
                 <Button
                   onClick={() => {
@@ -706,7 +677,7 @@ const WheelOfNames = () => {
               <Button
                 onClick={() => setShowImportDialog(true)}
                 className="w-full">
-                Import
+                Saved Wheels
               </Button>
               <Button
                 onClick={() => {
@@ -873,59 +844,40 @@ const WheelOfNames = () => {
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Import Teams</DialogTitle>
+            <DialogTitle>Saved Wheels</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col space-y-2">
-            <Button
-              onClick={() => {
-                setSelectedTeam('All')
-                setShowImportDialog(false)
-              }}>
-              Import All
-            </Button>
-            {Object.keys(teams).map((team) => (
-              <Button
-                key={team}
-                onClick={() => {
-                  setSelectedTeam(team)
-                  setShowImportDialog(false)
-                }}>
-                {team}
-              </Button>
-            ))}
-          </div>
-          {/* if custom wheel exists show the title */}
-          {Object.keys(wheels).length > 0 && (
-            <DialogTitle>Import Custom Wheels</DialogTitle>
+          
+          {Object.keys(wheels).length === 0 ? (
+            <p className="text-sm text-gray-500">No saved wheels yet.</p>
+          ) : (
+            <div className="flex flex-col space-y-2">
+              {Object.keys(wheels).map((wheel) => (
+                <div key={wheel} className="flex items-center space-x-2">
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      setSelectedWheel(wheel)
+                      setShowImportDialog(false)
+                    }}>
+                    {wheel}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const newWheels = { ...wheels }
+                      delete newWheels[wheel]
+                      setWheels(newWheels)
+                      localStorage.setItem(
+                        'savedWheels',
+                        JSON.stringify(newWheels)
+                      )
+                    }}>
+                    Delete
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
-
-          <div className="flex flex-col space-y-2">
-            {Object.keys(wheels).map((wheel) => (
-              <div key={wheel} className="flex items-center space-x-2">
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    setSelectedWheel(wheel)
-                    setShowImportDialog(false)
-                  }}>
-                  {wheel}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const newWheels = { ...wheels }
-                    delete newWheels[wheel]
-                    setWheels(newWheels)
-                    localStorage.setItem(
-                      'savedWheels',
-                      JSON.stringify(newWheels)
-                    )
-                  }}>
-                  Delete
-                </Button>
-              </div>
-            ))}
-          </div>
           <DialogFooter>
             <Button onClick={() => setShowImportDialog(false)}>Close</Button>
           </DialogFooter>
