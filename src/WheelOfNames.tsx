@@ -45,7 +45,7 @@ const WheelOfNames = () => {
   const [results, setResults] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<string>('people')
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-  const defaultImage = isChristmas ? '/15giftsXMAS.jpg' : '/15gifts.jpg'
+  const defaultImage = isChristmas ? './15giftsXMAS.jpg' : './15gifts.jpg'
   const [backgroundImageUrl, setBackgroundImageUrl] =
     useState<string>(defaultImage)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -531,12 +531,12 @@ const WheelOfNames = () => {
       ]
     } else {
       audioFiles = [
-        '/name1.mp3',
-        '/name2.mp3',
-        '/name3.mp3',
-        '/name4.mp3',
-        '/name5.mp3',
-        '/name6.mp3',
+        './name1.mp3',
+        './name2.mp3',
+        './name3.mp3',
+        './name4.mp3',
+        './name5.mp3',
+        './name6.mp3',
       ]
     }
 
@@ -751,7 +751,7 @@ const WheelOfNames = () => {
           </TabsContent>
         </Tabs>
       </div>
-      <audio ref={beepRef} src="/beep.mp3" preload="auto" />
+      <audio ref={beepRef} src="./beep.mp3" preload="auto" />
       {showAlert && (
         <AlertDialog
           open={showAlert}
