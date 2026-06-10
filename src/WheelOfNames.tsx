@@ -601,7 +601,7 @@ const WheelOfNames = () => {
               <div className="flex justify-between flex-col gap-2 mt-[2px]">
                 <Button
                   onClick={resetToDefaultNames} variant="outline" className="w-full">
-                  Reset to Default
+                  Reset
                 </Button>
                 <Button
                   onClick={() => setShowSaveDialog(true)}
@@ -687,7 +687,7 @@ const WheelOfNames = () => {
             <div className="flex justify-between flex-col gap-2 mt-[2px]">
               <Button
                   onClick={resetToDefaultNames} variant="outline" className="w-full">
-                  Reset to Default
+                  Reset
                 </Button>
               <Button
                 onClick={() => setShowSaveDialog(true)}
