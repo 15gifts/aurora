@@ -43,7 +43,7 @@ const WheelOfNames = () => {
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
   
   // Use relative paths for GitHub Pages
-  const defaultImage = isChristmas ? './XMASWheelBackground.jpg' : './WheelBackground.jpg'
+  const defaultImage = isChristmas ? './XmasWheelBackground.jpg' : './WheelBackground.jpg'
   const [backgroundImageUrl, setBackgroundImageUrl] =
     useState<string>(defaultImage)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
