@@ -390,7 +390,7 @@ const WheelOfNames = () => {
     arrow.style.height = '0'
     arrow.style.borderTop = `${arrowSize}px solid transparent`
     arrow.style.borderBottom = `${arrowSize}px solid transparent`
-    arrow.style.borderRight = `${arrowSize}px solid #dced48`
+    arrow.style.borderRight = `${arrowSize}px solid #1CF6B5`
     arrow.style.transform = 'translateY(-50%)'
 
     container.appendChild(arrow)
