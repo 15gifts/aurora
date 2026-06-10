@@ -547,7 +547,7 @@ const WheelOfNames = () => {
   return (
     <div
       className={`relative h-screen ${
-        isChristmas ? 'bg-[#800b00]' : 'bg-[#ebe8e3]'
+        isChristmas ? 'bg-[#a1adad]' : 'bg-[#d4d2c5]'
       }`}>
       <div className="absolute inset-0 flex items-center justify-center">
         <div
