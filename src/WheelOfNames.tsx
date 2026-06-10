@@ -489,12 +489,28 @@ const WheelOfNames = () => {
   }
 
   const showConfetti = () => {
-    confetti({
-      particleCount: 100,
-      colors: ['#008000', '#FF0000'],
-      spread: 70,
-      origin: { y: 0.6 },
-    })
+    if (isChristmas) {
+      // Snow effect configuration
+      confetti({
+        particleCount: 150,
+        colors: ['#ffffff', '#f0f8ff'], // White and Alice Blue
+        shapes: ['circle'],             // Round particles for snow
+        spread: 90,
+        origin: { y: 0.1 },             // Start near the top of the screen
+        gravity: 0.4,                   // Fall slower than normal confetti
+        ticks: 300,                     // Last slightly longer on screen
+        scalar: 0.8                     // Slightly smaller particles
+      })
+    } else {
+      // Default confetti configuration
+      confetti({
+        particleCount: 100,
+        colors: ['#008000', '#FF0000'],
+        spread: 70,
+        origin: { y: 0.6 },
+      })
+    }
+    
     setTimeout(() => confetti.reset(), 3000)
   }
 
