@@ -746,9 +746,11 @@ const WheelOfNames = () => {
               </AlertDialogTitle>
             </AlertDialogHeader>
             <AlertDialogFooter className="gap-2">
-              <AlertDialogAction onClick={removeSelectedName}>
-                Remove
-              </AlertDialogAction>
+              {names.length > 1 && (
+                <AlertDialogAction onClick={removeSelectedName}>
+                  Remove
+                </AlertDialogAction>
+              )}
               <AlertDialogAction onClick={() => setShowAlert(false)}>
                 OK
               </AlertDialogAction>
