@@ -480,6 +480,14 @@ const WheelOfNames = () => {
     saveToLocalStorage(shuffledNames.join('\n'))
   }
 
+  const resetToDefaultNames = () => {
+    const defaultNames = 'John\nPaul\nGeorge\nRingo'
+    setInputValue(defaultNames)
+    const newNames = defaultNames.split('\n').filter((name) => name.trim() !== '')
+    setNames(newNames)
+    saveToLocalStorage(defaultNames)
+  }
+
   const showConfetti = () => {
     confetti({
       particleCount: 100,
@@ -592,6 +600,10 @@ const WheelOfNames = () => {
               </div>
               <div className="flex justify-between flex-col gap-2 mt-[2px]">
                 <Button
+                  onClick={resetToDefaultNames} variant="outline" className="w-full">
+                  Reset to Default
+                </Button>
+                <Button
                   onClick={() => setShowSaveDialog(true)}
                   className="w-full">
                   Save
@@ -673,6 +685,10 @@ const WheelOfNames = () => {
               </div>
             </div>
             <div className="flex justify-between flex-col gap-2 mt-[2px]">
+              <Button
+                  onClick={resetToDefaultNames} variant="outline" className="w-full">
+                  Reset to Default
+                </Button>
               <Button
                 onClick={() => setShowSaveDialog(true)}
                 className="w-full">
