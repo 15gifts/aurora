@@ -520,6 +520,7 @@ const WheelOfNames = () => {
         './christmas/name2.mp3',
         './christmas/name3.mp3',
         './christmas/name4.mp3',
+        './christmas/name5.mp3',
       ]
     } else {
       audioFiles = [
