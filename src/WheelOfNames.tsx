@@ -538,6 +538,7 @@ const WheelOfNames = () => {
         './name12.mp3',
         './name13.mp3',
         './name14.mp3',
+        './name15.mp3',
       ]
     }
 
