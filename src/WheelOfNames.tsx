@@ -55,6 +55,7 @@ const WheelOfNames = () => {
   const isFirstSpin = useRef<boolean>(true)
   const previousSliceIndex = useRef<number | null>(null)
   const remainingAudioIndices = useRef<number[]>([])
+  const lastPlayedAudioIndex = useRef<number | null>(null)
 
   useEffect(() => {
     // Load all saved data from local storage
@@ -493,13 +494,20 @@ const WheelOfNames = () => {
     }
 
     if (remainingAudioIndices.current.length === 0) {
-      remainingAudioIndices.current = audioFiles
-        .map((_, i) => i)
-        .sort(() => Math.random() - 0.5)
+      remainingAudioIndices.current = audioFiles.map((_, i) => i).sort(() => Math.random() - 0.5)
+      const last = lastPlayedAudioIndex.current
+      if (last !== null) {
+        const lastPos = remainingAudioIndices.current.length - 1
+        if (remainingAudioIndices.current[lastPos] === last) {
+          const swapWith = Math.floor(Math.random() * lastPos)
+          remainingAudioIndices.current[lastPos] = remainingAudioIndices.current[swapWith]
+          remainingAudioIndices.current[swapWith] = last
+        }
+      }
     }
 
-    const poolIndex = Math.floor(Math.random() * remainingAudioIndices.current.length)
-    const randomIndex = remainingAudioIndices.current.splice(poolIndex, 1)[0]
+    const randomIndex = remainingAudioIndices.current.pop()!
+    lastPlayedAudioIndex.current = randomIndex
 
     const audio = new Audio(audioFiles[randomIndex])
     audio.volume = 0.1
