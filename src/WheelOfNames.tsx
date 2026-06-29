@@ -30,7 +30,6 @@ const WheelOfNames = () => {
   const [showImportDialog, setShowImportDialog] = useState<boolean>(false)
   const [showSaveDialog, setShowSaveDialog] = useState<boolean>(false)
   const [inputValue, setInputValue] = useState<string>('')
-  const [isUserUpdated, setIsUserUpdated] = useState<boolean>(false)
   const [saveWheelInputValue, setSaveWheelInputValue] = useState<string>('')
   const [spinning, setSpinning] = useState<boolean>(false)
   const [selectedName, setSelectedName] = useState<string>('')
@@ -55,7 +54,7 @@ const WheelOfNames = () => {
   const beepRef = useRef<HTMLAudioElement | null>(null)
   const isFirstSpin = useRef<boolean>(true)
   const previousSliceIndex = useRef<number | null>(null)
-  const lastPlayedAudioIndex = useRef<number | null>(null)
+  const remainingAudioIndices = useRef<number[]>([])
 
   useEffect(() => {
     // Load all saved data from local storage
@@ -63,53 +62,25 @@ const WheelOfNames = () => {
     const savedBgImageUrl = localStorage.getItem('wheelOfNamesBgImage')
     const savedResultMessage = localStorage.getItem('wheelOfNamesResultMessage')
     const savedWheels = localStorage.getItem('savedWheels')
-    const userUpdatedFlag = localStorage.getItem('isUserUpdated') === 'true'
 
-    // Load saved wheels from local storage
     if (savedWheels) {
       setWheels(JSON.parse(savedWheels))
     }
 
-    // Check for input data in URL if the user hasn't updated the names
-    if (!userUpdatedFlag) {
-      const urlParams = new URLSearchParams(window.location.search)
-      const inputData = urlParams.get('input')
-      if (inputData) {
-        const decodedInputValue = decodeBase64(inputData)
-        setInputValue(decodedInputValue)
-        const newNames = decodedInputValue
-          .split('\n')
-          .filter((name) => name.trim() !== '')
-        setNames(newNames)
-
-        // Clear URL parameters
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        )
-      } else if (savedInputValue) {
-        setInputValue(savedInputValue)
-        const newNames = savedInputValue
-          .split('\n')
-          .filter((name) => name.trim() !== '')
-        setNames(newNames)
-      } else {
-        // Set default names if no saved input value is found
-        const defaultNames = 'John\nPaul\nGeorge\nRingo'
-        setInputValue(defaultNames)
-        const newNames = defaultNames
-          .split('\n')
-          .filter((name) => name.trim() !== '')
-        setNames(newNames)
-        localStorage.setItem('wheelOfNamesInput', defaultNames)
-      }
+    const inputData = new URLSearchParams(window.location.search).get('input')
+    if (inputData) {
+      const decodedInputValue = decodeBase64(inputData)
+      setInputValue(decodedInputValue)
+      setNames(decodedInputValue.split('\n').filter((name) => name.trim() !== ''))
+      window.history.replaceState({}, document.title, window.location.pathname)
     } else if (savedInputValue) {
       setInputValue(savedInputValue)
-      const newNames = savedInputValue
-        .split('\n')
-        .filter((name) => name.trim() !== '')
-      setNames(newNames)
+      setNames(savedInputValue.split('\n').filter((name) => name.trim() !== ''))
+    } else {
+      const defaultNames = 'John\nPaul\nGeorge\nRingo'
+      setInputValue(defaultNames)
+      setNames(defaultNames.split('\n').filter((name) => name.trim() !== ''))
+      localStorage.setItem('wheelOfNamesInput', defaultNames)
     }
 
     if (savedBgImageUrl) {
@@ -204,9 +175,9 @@ const WheelOfNames = () => {
   }
 
   const resetToDefaultBackground = () => {
-    setBackgroundImageUrl('./WheelBackground.jpg')
+    setBackgroundImageUrl(defaultImage)
     localStorage.removeItem('wheelOfNamesBgImage')
-    loadBackgroundImage('./WheelBackground.jpg')
+    loadBackgroundImage(defaultImage)
   }
 
   const handleResultMessageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -234,9 +205,7 @@ const WheelOfNames = () => {
     setSaveWheelInputValue(value)
   }
 
-  const saveToLocalStorage = (value: string) => {
-    localStorage.setItem('wheelOfNamesInput', value)
-  }
+  const saveToLocalStorage = (value: string) => localStorage.setItem('wheelOfNamesInput', value)
 
   const saveWheelToLocalStorage = (value: string, names: string[]) => {
     const wheel = { [value]: names }
@@ -313,33 +282,12 @@ const WheelOfNames = () => {
     const lineWidth = 0.5
 
     const sliceAngle = (2 * Math.PI) / names.length
-    let fontSize
-
-    if (names.length >= 300) {
-      fontSize = Math.min(canvas.width, canvas.height) / 100
-    } else if (names.length >= 250) {
-      fontSize = Math.min(canvas.width, canvas.height) / 90
-    } else if (names.length >= 200) {
-      fontSize = Math.min(canvas.width, canvas.height) / 80
-    } else if (names.length >= 150) {
-      fontSize = Math.min(canvas.width, canvas.height) / 70
-    } else if (names.length >= 100) {
-      fontSize = Math.min(canvas.width, canvas.height) / 60
-    } else if (names.length >= 90) {
-      fontSize = Math.min(canvas.width, canvas.height) / 55
-    } else if (names.length >= 80) {
-      fontSize = Math.min(canvas.width, canvas.height) / 50
-    } else if (names.length >= 70) {
-      fontSize = Math.min(canvas.width, canvas.height) / 45
-    } else if (names.length >= 60) {
-      fontSize = Math.min(canvas.width, canvas.height) / 40
-    } else if (names.length >= 50) {
-      fontSize = Math.min(canvas.width, canvas.height) / 35
-    } else if (names.length >= 40) {
-      fontSize = Math.min(canvas.width, canvas.height) / 30
-    } else {
-      fontSize = Math.min(canvas.width, canvas.height) / 20
-    }
+    const fontSizeMap: [number, number][] = [
+      [300, 100], [250, 90], [200, 80], [150, 70], [100, 60],
+      [90, 55], [80, 50], [70, 45], [60, 40], [50, 35], [40, 30],
+    ]
+    const divisor = fontSizeMap.find(([t]) => names.length >= t)?.[1] ?? 20
+    const fontSize = Math.min(canvas.width, canvas.height) / divisor
 
     names.forEach((name, index) => {
       const startAngle = index * sliceAngle
@@ -511,7 +459,6 @@ const WheelOfNames = () => {
   }
 
   const playRandomAudio = () => {
-    let randomIndex
     let audioFiles
 
     if (isChristmas) {
@@ -545,11 +492,15 @@ const WheelOfNames = () => {
       ]
     }
 
-    do {
-      randomIndex = Math.floor(Math.random() * audioFiles.length)
-    } while (randomIndex === lastPlayedAudioIndex.current)
+    if (remainingAudioIndices.current.length === 0) {
+      remainingAudioIndices.current = audioFiles
+        .map((_, i) => i)
+        .sort(() => Math.random() - 0.5)
+    }
 
-    lastPlayedAudioIndex.current = randomIndex
+    const poolIndex = Math.floor(Math.random() * remainingAudioIndices.current.length)
+    const randomIndex = remainingAudioIndices.current.splice(poolIndex, 1)[0]
+
     const audio = new Audio(audioFiles[randomIndex])
     audio.volume = 0.1
     audio.play()
@@ -565,6 +516,53 @@ const WheelOfNames = () => {
 
   const commonTabContentStyle =
     'w-full h-64 p-2 rounded border bg-white resize-none overflow-y-auto outline-none'
+
+  const renderSidebarTabs = () => (
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="people">People</TabsTrigger>
+        <TabsTrigger value="results">Results</TabsTrigger>
+      </TabsList>
+      <TabsContent value="people">
+        <div className="relative">
+          <textarea
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="Enter names (one per line)"
+            className={commonTabContentStyle}
+          />
+          <div className="absolute flex flex-col space-y-2 top-2 right-2">
+            <ArrowDownAZ className="cursor-pointer text-[#495459]" onClick={sortNamesAlphabetically} />
+            <Shuffle className="cursor-pointer text-[#495459]" onClick={shuffleNames} />
+          </div>
+        </div>
+        <div className="flex justify-between flex-col gap-2 mt-[2px]">
+          <Button onClick={resetToDefaultNames} variant="outline" className="w-full">Reset</Button>
+          <Button onClick={() => setShowSaveDialog(true)} className="w-full">Save</Button>
+          <Button onClick={() => setShowImportDialog(true)} className="w-full">Saved Wheels</Button>
+          <Button onClick={() => {
+            const shareableLink = `${window.location.origin}?input=${encodeBase64(inputValue)}`
+            navigator.clipboard.writeText(shareableLink).then(() => alert('Shareable link copied to clipboard!'))
+          }}>Share</Button>
+          <Button onClick={() => { setShowSettingsModal(true); setIsMenuOpen(false) }}>Settings</Button>
+        </div>
+      </TabsContent>
+      <TabsContent value="results">
+        <div className={commonTabContentStyle}>
+          <ul className="p-0 m-0 list-none">
+            {results.map((result, index) => (
+              <li key={index} className="mb-1">{result}</li>
+            ))}
+          </ul>
+        </div>
+        {results.length > 0 && (
+          <div className="flex justify-between flex-col gap-2 mt-[2px]">
+            <Button onClick={() => setResults([])} className="mt-2">Clear Results</Button>
+          </div>
+        )}
+      </TabsContent>
+    </Tabs>
+  )
 
   return (
     <div
@@ -595,174 +593,12 @@ const WheelOfNames = () => {
         className={`fixed inset-y-0 right-0 w-64 pt-8 md:pt-0 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'
         } lg:hidden`}>
-        <div className="p-4 pt-14">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="people">People</TabsTrigger>
-              <TabsTrigger value="results">Results</TabsTrigger>
-            </TabsList>
-            <TabsContent value="people">
-              <div className="relative">
-                <textarea
-                  value={inputValue}
-                  onChange={handleInputChange}
-                  placeholder="Enter names (one per line)"
-                  className={commonTabContentStyle}
-                />
-                <div className="absolute flex flex-col space-y-2 top-2 right-2">
-                  <ArrowDownAZ
-                    className="cursor-pointer text-[#495459]"
-                    onClick={sortNamesAlphabetically}
-                  />
-                  <Shuffle
-                    className="cursor-pointer text-[#495459]"
-                    onClick={shuffleNames}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-between flex-col gap-2 mt-[2px]">
-                <Button
-                  onClick={resetToDefaultNames} variant="outline" className="w-full">
-                  Reset
-                </Button>
-                <Button
-                  onClick={() => setShowSaveDialog(true)}
-                  className="w-full">
-                  Save
-                </Button>
-                <Button
-                  onClick={() => setShowImportDialog(true)}
-                  className="w-full">
-                  Saved Wheels
-                </Button>
-                <Button
-                  onClick={() => {
-                    const encodedInputValue = encodeBase64(inputValue)
-                    const shareableLink = `${window.location.origin}?input=${encodedInputValue}`
-                    navigator.clipboard.writeText(shareableLink).then(() => {
-                      alert('Shareable link copied to clipboard!')
-                    })
-                  }}>
-                  Share
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowSettingsModal(true)
-                    setIsMenuOpen(false)
-                  }}>
-                  Settings
-                </Button>
-              </div>
-            </TabsContent>
-            <TabsContent value="results">
-              <div className={commonTabContentStyle}>
-                <ul className="p-0 m-0 list-none">
-                  {results.map((result, index) => (
-                    <li key={index} className="mb-1">
-                      {result}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              {results.length > 0 && (
-                <div className="flex justify-between flex-col gap-2 mt-[2px]">
-                  <Button
-                    onClick={() => {
-                      setResults([])
-                    }}
-                    className="mt-2">
-                    Clear Results
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
+        <div className="p-4 pt-14">{renderSidebarTabs()}</div>
       </div>
 
       {/* desktop sidebar */}
       <div className="absolute right-0 top-[45%] transform -translate-y-1/2 lg:w-32 xl:w-64 p-2 h-[315px] hidden lg:block">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="people">People</TabsTrigger>
-            <TabsTrigger value="results">Results</TabsTrigger>
-          </TabsList>
-          <TabsContent value="people">
-            <div className="relative">
-              <textarea
-                value={inputValue}
-                onChange={handleInputChange}
-                placeholder="Enter names (one per line)"
-                className={commonTabContentStyle}
-              />
-              <div className="absolute flex flex-col space-y-2 top-2 right-2">
-                <ArrowDownAZ
-                  className="cursor-pointer text-[#495459]"
-                  onClick={sortNamesAlphabetically}
-                />
-                <Shuffle
-                  className="cursor-pointer text-[#495459]"
-                  onClick={shuffleNames}
-                />
-              </div>
-            </div>
-            <div className="flex justify-between flex-col gap-2 mt-[2px]">
-              <Button
-                  onClick={resetToDefaultNames} variant="outline" className="w-full">
-                  Reset
-                </Button>
-              <Button
-                onClick={() => setShowSaveDialog(true)}
-                className="w-full">
-                Save
-              </Button>
-              <Button
-                onClick={() => setShowImportDialog(true)}
-                className="w-full">
-                Saved Wheels
-              </Button>
-              <Button
-                onClick={() => {
-                  const encodedInputValue = encodeBase64(inputValue)
-                  const shareableLink = `${window.location.origin}?input=${encodedInputValue}`
-                  navigator.clipboard.writeText(shareableLink).then(() => {
-                    alert('Shareable link copied to clipboard!')
-                  })
-                }}>
-                Share
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowSettingsModal(true)
-                  setIsMenuOpen(false)
-                }}>
-                Settings
-              </Button>
-            </div>
-          </TabsContent>
-          <TabsContent value="results">
-            <div className={commonTabContentStyle}>
-              <ul className="p-0 m-0 list-none">
-                {results.map((result, index) => (
-                  <li key={index} className="mb-1">
-                    {result}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {results.length > 0 && (
-              <div className="flex justify-between flex-col gap-2 mt-[2px]">
-                <Button
-                  onClick={() => {
-                    setResults([])
-                  }}
-                  className="mt-2">
-                  Clear Results
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+        {renderSidebarTabs()}
       </div>
       <audio ref={beepRef} src="./beep.mp3" preload="auto" />
       {showAlert && (
