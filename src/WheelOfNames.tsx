@@ -56,6 +56,8 @@ const WheelOfNames = () => {
   const previousSliceIndex = useRef<number | null>(null)
   const remainingAudioIndices = useRef<number[]>([])
   const lastPlayedAudioIndex = useRef<number | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioBufferCache = useRef<Map<string, { buffer: AudioBuffer; gain: number }>>(new Map())
 
   useEffect(() => {
     // Load all saved data from local storage
@@ -459,7 +461,38 @@ const WheelOfNames = () => {
     setTimeout(() => confetti.reset(), 3000)
   }
 
-  const playRandomAudio = () => {
+  // Clips were recorded at very different volumes, so play them through Web
+  // Audio with a per-clip gain that normalizes each one to the same peak
+  // level instead of relying on a single flat <audio>.volume.
+  const MASTER_VOLUME = 0.15
+  const MAX_GAIN = 20
+
+  const loadNormalizedAudio = async (src: string) => {
+    const cached = audioBufferCache.current.get(src)
+    if (cached) return cached
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContext()
+    }
+    const ctx = audioContextRef.current
+
+    const arrayBuffer = await (await fetch(src)).arrayBuffer()
+    const buffer = await ctx.decodeAudioData(arrayBuffer)
+
+    let peak = 0
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const data = buffer.getChannelData(c)
+      for (let i = 0; i < data.length; i++) {
+        peak = Math.max(peak, Math.abs(data[i]))
+      }
+    }
+
+    const result = { buffer, gain: peak > 0 ? Math.min(1 / peak, MAX_GAIN) : 1 }
+    audioBufferCache.current.set(src, result)
+    return result
+  }
+
+  const playRandomAudio = async () => {
     let audioFiles
 
     if (isChristmas) {
@@ -508,10 +541,23 @@ const WheelOfNames = () => {
 
     const randomIndex = remainingAudioIndices.current.pop()!
     lastPlayedAudioIndex.current = randomIndex
+    const src = audioFiles[randomIndex]
 
-    const audio = new Audio(audioFiles[randomIndex])
-    audio.volume = 0.1
-    audio.play()
+    try {
+      const { buffer, gain } = await loadNormalizedAudio(src)
+      const ctx = audioContextRef.current!
+      const source = ctx.createBufferSource()
+      source.buffer = buffer
+      const gainNode = ctx.createGain()
+      gainNode.gain.value = gain * MASTER_VOLUME
+      source.connect(gainNode).connect(ctx.destination)
+      source.start()
+    } catch {
+      // Fallback if Web Audio decoding fails for some reason
+      const audio = new Audio(src)
+      audio.volume = 0.1
+      audio.play()
+    }
   }
 
   const removeSelectedName = () => {
